@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "playwright test"
+    "test": "playwright test",
+    "build:github": "node scripts/build-github-pages.mjs",
+    "test:github": "node scripts/verify-github-pages.mjs"
   },
   "private": true,
   "packageManager": "npm@11.6.2",

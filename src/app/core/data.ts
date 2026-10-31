@@ -1,5 +1,5 @@
 import { bi, Project, Category } from './models';
-export const images = Array.from({ length: 6 }, (_, i) => `/images/interior-${i}.jpg`);
+export const images = Array.from({ length: 6 }, (_, i) => `images/interior-${i}.jpg`);
 const records: [string, string, string, Category, number, number][] = [
   ['al-nour', 'شقة النور', 'Al Nour Apartment', 'apartment', 145, 12],
   ['olive', 'شقة الزيتون', 'Olive Apartment', 'apartment', 110, 8],

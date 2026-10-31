@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 test('branded startup loading, reduced motion and readable bilingual layouts', async ({ page }) => {
   let releaseFonts!: () => void;
   const fontsReady = new Promise<void>((resolve) => (releaseFonts = resolve));
-  await page.route('**/fonts/*.ttf', async (route) => {
+  await page.route('**/*.ttf', async (route) => {
     await fontsReady;
     await route.continue();
   });
@@ -15,7 +15,7 @@ test('branded startup loading, reduced motion and readable bilingual layouts', a
   ).toBe('none');
   releaseFonts();
   await expect(page.locator('brand-loading')).toHaveCount(0);
-  await page.unroute('**/fonts/*.ttf');
+  await page.unroute('**/*.ttf');
   for (const language of ['ar', 'en']) {
     if (language === 'en') await page.getByRole('button', { name: 'Switch to English' }).click();
     for (const width of [360, 390, 768, 1280, 1536]) {

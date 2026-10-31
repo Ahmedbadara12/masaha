@@ -280,7 +280,7 @@ header {
   width: 52px;
   height: 52px;
   display: block;
-  background: url('/favicon.svg') center/contain no-repeat;
+  background: url('../public/favicon.svg') center/contain no-repeat;
   flex-shrink: 0;
 }
 .desktop-nav {
@@ -647,7 +647,7 @@ header {
   color: #ffffff06;
   pointer-events: none;
   content: '';
-  background: url('/favicon.svg') center/contain no-repeat;
+  background: url('../public/favicon.svg') center/contain no-repeat;
   opacity: 0.055;
   inset-inline-end: 120px;
   bottom: -90px;
@@ -1590,3 +1590,4 @@ svg {
     transition: none !important;
   }
 }
+
