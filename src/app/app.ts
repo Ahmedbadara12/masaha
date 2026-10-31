@@ -1,7 +1,17 @@
 import { LucideMenu, LucideLanguages, LucideArrowUpRight } from '@lucide/angular';
-import { Component, inject, signal } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { afterNextRender, Component, inject, signal } from '@angular/core';
+import {
+  NavigationStart,
+  NavigationCancel,
+  NavigationError,
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
 import { Language } from './core/language';
+import { BrandLoading } from './loading';
 @Component({
   selector: 'app-root',
   imports: [
@@ -11,8 +21,12 @@ import { Language } from './core/language';
     LucideMenu,
     LucideLanguages,
     LucideArrowUpRight,
+    BrandLoading,
   ],
-  template: ` <a class="skip" href="#main">{{ l.text('تخطَّ إلى المحتوى', 'Skip to content') }}</a>
+  template: ` @if (startupLoading() || routeLoading()) {
+      <brand-loading />
+    }
+    <a class="skip" href="#main">{{ l.text('تخطَّ إلى المحتوى', 'Skip to content') }}</a>
     <header (keydown.escape)="closeMenu()">
       <div class="container header-inner">
         <a
@@ -64,7 +78,9 @@ import { Language } from './core/language';
         </nav>
       }
     </header>
-    <main id="main" tabindex="-1"><router-outlet /></main>
+    <main id="main" tabindex="-1" [attr.aria-busy]="startupLoading() || routeLoading()">
+      <router-outlet />
+    </main>
     <footer>
       <div class="container footer-grid">
         <a routerLink="/" class="brand"
@@ -102,9 +118,22 @@ export class App {
   router = inject(Router);
   menu = signal(false);
   quote = signal(false);
+  startupLoading = signal(true);
+  routeLoading = signal(true);
   constructor() {
+    afterNextRender(() => {
+      // Wait for local typography, without imposing an artificial splash delay.
+      Promise.race([
+        document.fonts.ready,
+        new Promise((resolve) => setTimeout(resolve, 2500)),
+      ]).finally(() => this.startupLoading.set(false));
+    });
     this.router.events.subscribe((e) => {
+      if (e instanceof NavigationStart) this.routeLoading.set(true);
+      if (e instanceof NavigationCancel || e instanceof NavigationError)
+        this.routeLoading.set(false);
       if (e instanceof NavigationEnd) {
+        this.routeLoading.set(false);
         this.menu.set(false);
         this.quote.set(e.urlAfterRedirects.startsWith('/quote'));
       }

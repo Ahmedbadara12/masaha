@@ -2,6 +2,8 @@
 
 A complete Arabic-first Angular 21 + Tailwind CSS frontend for an illustrative interior design studio. Standalone components, lazy routes, signals, reactive forms and Lucide icons. Cairo and Manrope fonts and responsive stock photography are bundled locally.
 
+The logo loading screen covers initial bootstrap, local font readiness and lazy route loading, without an artificial minimum delay. Its progress animation respects reduced motion. Supporting copy uses approximately 16px text, with metadata and controls at least 14px. A bilingual no-JavaScript message is included.
+
 ## Run
 
 Requires Node.js 20.19+ or 22.12+ (Node 24 is supported).

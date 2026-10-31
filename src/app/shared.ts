@@ -56,7 +56,14 @@ export class ImageFallback {
       <h3>{{ l.t(project().title) }}</h3>
       <span>{{ project().areaSqm }} {{ l.text('م²', 'm²') }}</span>
     </div>
-    <p>{{ category(project().category) }}</p></a
+    <p>{{ category(project().category) }}</p>
+    <p class="project-service">
+      {{
+        project().services.length > 1
+          ? l.text('تصميم وتشطيب', 'Design & finishing')
+          : l.text('تجديد وحدات', 'Renovation')
+      }}
+    </p></a
   >`,
 })
 export class ProjectCard {

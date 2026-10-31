@@ -10,8 +10,97 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <style>
+      .bootstrap-loader {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #f7f5f0;
+        color: #252824;
+        z-index: 100;
+        font-family: Tahoma, Arial, sans-serif;
+        text-align: center;
+      }
+      .bootstrap-lockup {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        direction: rtl;
+      }
+      .bootstrap-lockup img {
+        width: 68px;
+        height: 68px;
+        object-fit: contain;
+      }
+      .bootstrap-lockup b {
+        font-size: 40px;
+        font-weight: 700;
+        line-height: 1.3;
+      }
+      .bootstrap-lockup small {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 6px;
+        margin-top: 8px;
+      }
+      .bootstrap-loader p {
+        font-size: 14px;
+        margin-top: 28px;
+        color: #64675f;
+      }
+      .bootstrap-progress {
+        width: 180px;
+        height: 2px;
+        background: #e2e0d8;
+        margin: 25px auto 0;
+        overflow: hidden;
+      }
+      .bootstrap-progress:after {
+        content: '';
+        display: block;
+        width: 50%;
+        height: 100%;
+        background: #626b4a;
+        animation: bootstrap-progress 1.3s ease-in-out infinite alternate;
+      }
+      @keyframes bootstrap-progress {
+        to {
+          transform: translateX(-100%);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .bootstrap-progress:after {
+          animation: none;
+        }
+      }
+    </style>
   </head>
   <body>
-    <app-root></app-root>
+    <app-root
+      ><div class="bootstrap-loader" role="status">
+        <div>
+          <div class="bootstrap-lockup">
+            <img src="favicon.svg" width="68" height="68" alt="" /><span
+              ><b>مساحة</b><small>MASAHA</small></span
+            >
+          </div>
+          <div class="bootstrap-progress" aria-hidden="true"></div>
+          <p>جارٍ تحميل مساحة / Loading Masaha</p>
+        </div>
+      </div></app-root
+    >
+    <noscript
+      ><style>
+        .bootstrap-loader {
+          display: none !important;
+        }
+      </style>
+      <p style="padding: 24px; text-align: center">
+        يحتاج هذا الموقع إلى JavaScript لعرض المساحات والنموذج. Please enable JavaScript to explore
+        Masaha.
+      </p></noscript
+    >
   </body>
 </html>

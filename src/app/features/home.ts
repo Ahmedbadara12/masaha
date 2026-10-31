@@ -68,7 +68,6 @@ import { ImageFallback, ProjectCard } from '../shared';
         <span>MASAHA — {{ l.text('حيث تبدأ التفاصيل', 'WHERE DETAILS BEGIN') }}</span
         ><a href="#services">{{ l.text('اكتشف المساحة', 'DISCOVER MORE') }} ↓</a>
       </div>
-      <span class="hero-side" aria-hidden="true">A THOUGHTFUL SPACE. A BETTER EVERYDAY.</span>
     </section>
     <section id="services" class="section container">
       <div class="section-heading">
@@ -134,8 +133,8 @@ import { ImageFallback, ProjectCard } from '../shared';
         <p class="demo-note">
           {{
             l.text(
-              'مشروعات تصوّرية وصور توضيحية — محتوى تجريبي لعرض أسلوب التصميم.',
-              'Concept projects and illustrative photography — demo content showcasing a design approach.'
+              'مشاريع توضيحية لعرض التصميم، وليست أعمالًا منفذة للشركة.',
+              'Illustrative projects for this demo, not completed company work.'
             )
           }}
         </p>
@@ -218,8 +217,7 @@ import { ImageFallback, ProjectCard } from '../shared';
         </p>
       </div>
       <a class="btn cream" routerLink="/quote"
-        >{{ l.text('ابدأ مشروعك معنا', 'Start your project') }}
-        <span><svg lucideArrowUpRight /></span
+        >{{ l.text('اطلب معاينة', 'Request an inspection') }} <span><svg lucideArrowUpRight /></span
       ></a>
     </section>`,
 })

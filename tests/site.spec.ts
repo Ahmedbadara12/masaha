@@ -1,4 +1,64 @@
 import { test, expect } from '@playwright/test';
+test('branded startup loading, reduced motion and readable bilingual layouts', async ({ page }) => {
+  let releaseFonts!: () => void;
+  const fontsReady = new Promise<void>((resolve) => (releaseFonts = resolve));
+  await page.route('**/fonts/*.ttf', async (route) => {
+    await fontsReady;
+    await route.continue();
+  });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.brand-loader')).toBeVisible();
+  await expect(page.locator('brand-loading')).toContainText('مساحة');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  expect(
+    await page.locator('.loader-track span').evaluate((e) => getComputedStyle(e).animationName),
+  ).toBe('none');
+  releaseFonts();
+  await expect(page.locator('brand-loading')).toHaveCount(0);
+  await page.unroute('**/fonts/*.ttf');
+  for (const language of ['ar', 'en']) {
+    if (language === 'en') await page.getByRole('button', { name: 'Switch to English' }).click();
+    for (const width of [360, 390, 768, 1280, 1536]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+        `${language} at ${width}`,
+      ).toBeTruthy();
+      for (const selector of ['.service-card p', '.process-grid p', '.faq-item p']) {
+        expect(
+          await page
+            .locator(selector)
+            .first()
+            .evaluate((e) => parseFloat(getComputedStyle(e).fontSize)),
+        ).toBeGreaterThanOrEqual(16);
+      }
+      for (const selector of [
+        '.project-line>span',
+        '.project-card>p',
+        '.footer-bottom',
+        '.service-card .text-link',
+      ]) {
+        expect(
+          await page
+            .locator(selector)
+            .first()
+            .evaluate((e) => parseFloat(getComputedStyle(e).fontSize)),
+        ).toBeGreaterThanOrEqual(14);
+      }
+      const boxes = await page.evaluate(() => {
+        const hero = document.querySelector('.hero')!.getBoundingClientRect();
+        const content = document.querySelector('.hero-buttons')!.getBoundingClientRect();
+        return { hero: hero.bottom, content: content.bottom };
+      });
+      expect(boxes.content).toBeLessThan(boxes.hero);
+      if (width === 390 || width === 1536)
+        await page.screenshot({
+          path: `artifacts/refined-${language}-${width}.png`,
+          fullPage: true,
+        });
+    }
+  }
+});
 test('FAQ, local Arabic font, image fallback and invalid numeric input', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => document.fonts.ready);
