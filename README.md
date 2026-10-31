@@ -11,7 +11,7 @@ npm install
 npm start
 ```
 
-Open http://localhost:4200. To produce deployable assets, run `npm run build`; output is `dist/masaha/browser`.
+Open http://localhost:4200. To produce deployable assets, run `npm run build`; output is `dist`.
 
 ## Check
 
@@ -39,3 +39,4 @@ Deploy the browser output to a static host with SPA fallback to `index.html`. A 
 All projects and durations are illustrative. Photography is stock content, not completed Masaha work. The supplied brand has a typographic/vector interpretation. See `ASSETS.md` for sources and local font licenses.
 
 Quote submission is a timer-based frontend simulation. Personal data is never transmitted, logged, or stored; form values are cleared after success. Only the language preference is stored in localStorage. There is no backend, authentication, booking, or real company contact channel.
+
