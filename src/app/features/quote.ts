@@ -1,10 +1,295 @@
-import {Component,ElementRef,inject,signal} from '@angular/core';
-import {ReactiveFormsModule,FormBuilder,Validators} from '@angular/forms';
-import {ActivatedRoute} from '@angular/router';
-import {Language} from '../core/language';
-import {bi} from '../core/models';
-import {projects,services,images} from '../core/data';
-import {areaValidator,digits,nameValidator,normalizePhone,phoneValidator} from '../core/validation';
-import {ImageFallback} from '../shared';
-@Component({imports:[ReactiveFormsModule,ImageFallback],template:`<section class="container quote-layout"><aside class="quote-aside"><p class="eyebrow">{{l.text('لنبدأ من هنا','LET’S BEGIN HERE')}}</p><h1>{{l.text('احكِ لنا عن مساحتك.','Tell us about your space.')}}</h1><p>{{l.text('كل تفصيلة تشاركنا بها تساعد في فهم رؤيتك. اختر ما تحتاجه، واترك للفكرة مساحة.','Every detail helps us understand your vision. Choose what you need and give your idea room to grow.')}}</p><img fallback [src]="image" [alt]="l.text('تفاصيل داخلية هادئة بألوان طبيعية','Quiet interior details in natural tones')" width="650" height="600" loading="lazy"><p class="demo-note">{{l.text('نموذج تجريبي، لا ينشئ حجزًا فعليًا.','Demo form. This does not create a real booking.')}}</p></aside><div class="quote-form-wrap">@if(success()){<div class="success" role="status"><span class="success-icon">✓</span><h2 id="success-heading" tabindex="-1">{{l.text('تم تسجيل الطلب تجريبيًا، لم تُرسل بيانات لأي شركة','Your request was recorded for this demo. No data was sent to any company.')}}</h2><p>{{l.text('يمكنك تجربة طلب جديد في أي وقت.','You can try a new request at any time.')}}</p><button class="btn" (click)="reset()">{{l.text('بدء طلب جديد','Start a new request')}}</button></div>}@else{<p class="eyebrow">{{l.text('طلب معاينة / عرض سعر','INSPECTION / QUOTE REQUEST')}}</p><h2>{{l.text('بعض التفاصيل، كبداية.','A few details to get started.')}}</h2><p class="form-notice">{{l.text('هذا النموذج للعرض التجريبي فقط. لن تتلقى أي شركة بياناتك، ولن يتم حفظ معلوماتك الشخصية.','This form is a demo. No company will receive your data, and your personal information will not be stored.')}}</p>@if(reference){<p class="reference">{{l.text('المشروع المرجعي: ','Project reference: ')}}{{l.t(reference.title)}}</p>}<form [formGroup]="form" (ngSubmit)="submit()" novalidate><div class="form-grid">@for(field of fields;track field.id){<div class="field" [class.full]="field.id==='description'"><label [for]="field.id">{{l.t(field.label)}} {{field.id==='description'?l.text('(اختياري)','(optional)'):'*'}}</label>@switch(field.id){@case('unit'){<select id="unit" formControlName="unit" [attr.aria-invalid]="invalid('unit')" aria-describedby="unit-error"><option value="">{{l.text('اختر نوع الوحدة','Select unit type')}}</option>@for(u of units;track u.id){<option [value]="u.id">{{l.t(u.title)}}</option>}</select>}@case('service'){<select id="service" formControlName="service" [attr.aria-invalid]="invalid('service')" aria-describedby="service-error"><option value="">{{l.text('اختر الخدمة','Select service')}}</option>@for(s of serviceOptions;track s.id){<option [value]="s.id">{{l.t(s.title)}}</option>}</select>}@case('description'){<textarea id="description" formControlName="description" maxlength="1000" rows="4" [placeholder]="l.text('ما الذي تتخيله لمساحتك؟','What do you imagine for your space?')" [attr.aria-invalid]="invalid('description')" aria-describedby="description-error description-count"></textarea><small id="description-count">{{form.controls.description.value.length}} / 1000</small>}@default{<input [id]="field.id" [formControlName]="field.id" [type]="field.id==='phone'?'tel':'text'" [attr.inputmode]="field.id==='area'?'decimal':field.id==='phone'?'tel':'text'" [attr.autocomplete]="field.id==='name'?'name':field.id==='phone'?'tel':'off'" [placeholder]="l.t(field.placeholder)" [attr.aria-required]="true" [attr.aria-invalid]="invalid(field.id)" [attr.aria-describedby]="field.id+'-error'">}}<span class="error" [id]="field.id+'-error'">@if(invalid(field.id)){ {{error(field.id)}} }</span></div>}</div><p class="required-note">* {{l.text('حقول مطلوبة','Required fields')}}</p><button class="btn submit" type="submit" [disabled]="loading()">{{loading()?l.text('جارٍ التسجيل التجريبي…','Recording demo request…'):l.text('إرسال الطلب التجريبي','Submit demo request')}} <span>↗</span></button><p class="demo-note" aria-live="polite">{{loading()?l.text('يرجى الانتظار…','Please wait…'):l.text('لا تُرسل بياناتك عبر الشبكة.','Your data is not sent over the network.')}}</p></form>}</div></section>`})
-export class Quote {l=inject(Language);fb=inject(FormBuilder);el=inject(ElementRef);route=inject(ActivatedRoute);loading=signal(false);success=signal(false);submitted=false;image=images[1];reference=projects.find(x=>x.id===this.route.snapshot.queryParamMap.get('project'));form=this.fb.nonNullable.group({name:['',[nameValidator]],phone:['',[phoneValidator]],unit:['',[Validators.required]],area:['',[areaValidator]],service:['',[Validators.required]],description:['',[Validators.maxLength(1000)]]});units=[{id:'apartment',title:bi('شقة','Apartment')},{id:'office',title:bi('مكتب','Office')},{id:'retail',title:bi('محل','Retail')},{id:'other',title:bi('أخرى','Other')}];serviceOptions=[...services,{id:'design-finishing',title:bi('تصميم وتشطيب','Design & finishing')}];fields=[{id:'name',label:bi('الاسم الكامل','Full name'),placeholder:bi('اسمك الكامل','Your full name')},{id:'phone',label:bi('رقم الهاتف','Phone number'),placeholder:bi('مثال: +20 100 123 4567','e.g. +20 100 123 4567')},{id:'unit',label:bi('نوع الوحدة','Unit type'),placeholder:bi('','')},{id:'area',label:bi('المساحة التقريبية (م²)','Approximate area (m²)'),placeholder:bi('مثال: ١٢٠','e.g. 120')},{id:'service',label:bi('الخدمة المطلوبة','Requested service'),placeholder:bi('','')},{id:'description',label:bi('وصف مختصر','Short description'),placeholder:bi('','')}];constructor(){this.l.setTitle('اطلب معاينة','Request an inspection');const q=this.route.snapshot.queryParamMap;const unit=q.get('unit')||this.reference?.category||'';const service=q.get('service')||(this.reference?(this.reference.services.length>1?'design-finishing':'renovation'):'');if(this.units.some(u=>u.id===unit))this.form.controls.unit.setValue(unit);if(this.serviceOptions.some(s=>s.id===service))this.form.controls.service.setValue(service);}invalid(id:string){const c=this.form.get(id)!;return c.invalid&&(c.touched||this.submitted);}error(id:string){return id==='phone'?this.l.text('أدخل رقم هاتف صحيحًا من 7 إلى 15 رقمًا.','Enter a valid phone number of 7–15 digits.'):id==='area'?this.l.text('أدخل مساحة أكبر من صفر.','Enter an area greater than zero.'):id==='name'?this.l.text('أدخل الاسم الكامل (حرفان على الأقل).','Enter your full name (at least 2 characters).'):this.l.text('يرجى إكمال هذا الحقل.','Please complete this field.');}async submit(){if(this.loading())return;this.submitted=true;this.form.markAllAsTouched();if(this.form.invalid){const id=this.fields.find(f=>this.form.get(f.id)?.invalid)?.id;this.el.nativeElement.querySelector('#'+id)?.focus();return;}this.form.patchValue({name:this.form.controls.name.value.trim(),phone:normalizePhone(this.form.controls.phone.value),area:digits(this.form.controls.area.value).trim().replace('٫','.'),description:this.form.controls.description.value.trim()});this.loading.set(true);await new Promise(r=>setTimeout(r,700));this.loading.set(false);this.success.set(true);this.form.reset();setTimeout(()=>document.getElementById('success-heading')?.focus());}reset(){this.submitted=false;this.form.reset();this.success.set(false);setTimeout(()=>document.getElementById('name')?.focus());}}
+import { Component, ElementRef, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { Language } from '../core/language';
+import { bi } from '../core/models';
+import { projects, services, images } from '../core/data';
+import {
+  areaValidator,
+  digits,
+  nameValidator,
+  normalizePhone,
+  phoneValidator,
+} from '../core/validation';
+import { ImageFallback } from '../shared';
+@Component({
+  imports: [ReactiveFormsModule, ImageFallback],
+  template: `<section class="container quote-layout">
+    <aside class="quote-aside">
+      <p class="eyebrow">{{ l.text('لنبدأ من هنا', 'LET’S BEGIN HERE') }}</p>
+      <h1>{{ l.text('احكِ لنا عن مساحتك.', 'Tell us about your space.') }}</h1>
+      <p>
+        {{
+          l.text(
+            'كل تفصيلة تشاركنا بها تساعد في فهم رؤيتك. اختر ما تحتاجه، واترك للفكرة مساحة.',
+            'Every detail helps us understand your vision. Choose what you need and give your idea room to grow.'
+          )
+        }}
+      </p>
+      <img
+        fallback
+        [src]="image"
+        [alt]="
+          l.text('تفاصيل داخلية هادئة بألوان طبيعية', 'Quiet interior details in natural tones')
+        "
+        width="650"
+        height="600"
+        loading="lazy"
+      />
+      <p class="demo-note">
+        {{
+          l.text(
+            'نموذج تجريبي، لا ينشئ حجزًا فعليًا.',
+            'Demo form. This does not create a real booking.'
+          )
+        }}
+      </p>
+    </aside>
+    <div class="quote-form-wrap">
+      @if (success()) {
+        <div class="success" role="status">
+          <span class="success-icon">✓</span>
+          <h2 id="success-heading" tabindex="-1">
+            {{
+              l.text(
+                'تم تسجيل الطلب تجريبيًا، لم تُرسل بيانات لأي شركة',
+                'Your request was recorded for this demo. No data was sent to any company.'
+              )
+            }}
+          </h2>
+          <p>
+            {{
+              l.text('يمكنك تجربة طلب جديد في أي وقت.', 'You can try a new request at any time.')
+            }}
+          </p>
+          <button class="btn" (click)="reset()">
+            {{ l.text('بدء طلب جديد', 'Start a new request') }}
+          </button>
+        </div>
+      } @else {
+        <p class="eyebrow">{{ l.text('طلب معاينة / عرض سعر', 'INSPECTION / QUOTE REQUEST') }}</p>
+        <h2>{{ l.text('بعض التفاصيل، كبداية.', 'A few details to get started.') }}</h2>
+        <p class="form-notice">
+          {{
+            l.text(
+              'هذا النموذج للعرض التجريبي فقط. لن تتلقى أي شركة بياناتك، ولن يتم حفظ معلوماتك الشخصية.',
+              'This form is a demo. No company will receive your data, and your personal information will not be stored.'
+            )
+          }}
+        </p>
+        @if (reference) {
+          <p class="reference">
+            {{ l.text('المشروع المرجعي: ', 'Project reference: ') }}{{ l.t(reference.title) }}
+          </p>
+        }
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <div class="form-grid">
+            @for (field of fields; track field.id) {
+              <div class="field" [class.full]="field.id === 'description'">
+                <label [for]="field.id"
+                  >{{ l.t(field.label) }}
+                  {{ field.id === 'description' ? l.text('(اختياري)', '(optional)') : '*' }}</label
+                >
+                @switch (field.id) {
+                  @case ('unit') {
+                    <select
+                      id="unit"
+                      formControlName="unit"
+                      aria-required="true"
+                      [attr.aria-invalid]="invalid('unit')"
+                      aria-describedby="unit-error"
+                    >
+                      <option value="">{{ l.text('اختر نوع الوحدة', 'Select unit type') }}</option>
+                      @for (u of units; track u.id) {
+                        <option [value]="u.id">{{ l.t(u.title) }}</option>
+                      }
+                    </select>
+                  }
+                  @case ('service') {
+                    <select
+                      id="service"
+                      formControlName="service"
+                      aria-required="true"
+                      [attr.aria-invalid]="invalid('service')"
+                      aria-describedby="service-error"
+                    >
+                      <option value="">{{ l.text('اختر الخدمة', 'Select service') }}</option>
+                      @for (s of serviceOptions; track s.id) {
+                        <option [value]="s.id">{{ l.t(s.title) }}</option>
+                      }
+                    </select>
+                  }
+                  @case ('description') {
+                    <textarea
+                      id="description"
+                      formControlName="description"
+                      maxlength="1000"
+                      rows="4"
+                      [placeholder]="
+                        l.text('ما الذي تتخيله لمساحتك؟', 'What do you imagine for your space?')
+                      "
+                      [attr.aria-invalid]="invalid('description')"
+                      aria-describedby="description-error description-count"
+                    ></textarea
+                    ><small id="description-count"
+                      >{{ form.controls.description.value.length }} / 1000</small
+                    >
+                  }
+                  @default {
+                    <input
+                      [id]="field.id"
+                      [formControlName]="field.id"
+                      [type]="field.id === 'phone' ? 'tel' : 'text'"
+                      [attr.inputmode]="
+                        field.id === 'area' ? 'decimal' : field.id === 'phone' ? 'tel' : 'text'
+                      "
+                      [attr.autocomplete]="
+                        field.id === 'name' ? 'name' : field.id === 'phone' ? 'tel' : 'off'
+                      "
+                      [placeholder]="l.t(field.placeholder)"
+                      [attr.aria-required]="true"
+                      [attr.aria-invalid]="invalid(field.id)"
+                      [attr.aria-describedby]="field.id + '-error'"
+                    />
+                  }
+                }
+                <span class="error" [id]="field.id + '-error'">
+                  @if (invalid(field.id)) {
+                    {{ error(field.id) }}
+                  }
+                </span>
+              </div>
+            }
+          </div>
+          <p class="required-note">* {{ l.text('حقول مطلوبة', 'Required fields') }}</p>
+          <button class="btn submit" type="submit" [disabled]="loading()">
+            {{
+              loading()
+                ? l.text('جارٍ التسجيل التجريبي…', 'Recording demo request…')
+                : l.text('إرسال الطلب التجريبي', 'Submit demo request')
+            }}
+            <span>↗</span>
+          </button>
+          <p class="demo-note" aria-live="polite">
+            {{
+              loading()
+                ? l.text('يرجى الانتظار…', 'Please wait…')
+                : l.text('لا تُرسل بياناتك عبر الشبكة.', 'Your data is not sent over the network.')
+            }}
+          </p>
+        </form>
+      }
+    </div>
+  </section>`,
+})
+export class Quote {
+  l = inject(Language);
+  fb = inject(FormBuilder);
+  el = inject(ElementRef);
+  route = inject(ActivatedRoute);
+  loading = signal(false);
+  success = signal(false);
+  submitted = false;
+  image = images[1];
+  reference = projects.find((x) => x.id === this.route.snapshot.queryParamMap.get('project'));
+  form = this.fb.nonNullable.group({
+    name: ['', [nameValidator]],
+    phone: ['', [phoneValidator]],
+    unit: ['', [Validators.required]],
+    area: ['', [areaValidator]],
+    service: ['', [Validators.required]],
+    description: ['', [Validators.maxLength(1000)]],
+  });
+  units = [
+    { id: 'apartment', title: bi('شقة', 'Apartment') },
+    { id: 'office', title: bi('مكتب', 'Office') },
+    { id: 'retail', title: bi('محل', 'Retail') },
+    { id: 'other', title: bi('أخرى', 'Other') },
+  ];
+  serviceOptions = [
+    ...services,
+    { id: 'design-finishing', title: bi('تصميم وتشطيب', 'Design & finishing') },
+  ];
+  fields = [
+    {
+      id: 'name',
+      label: bi('الاسم الكامل', 'Full name'),
+      placeholder: bi('اسمك الكامل', 'Your full name'),
+    },
+    {
+      id: 'phone',
+      label: bi('رقم الهاتف', 'Phone number'),
+      placeholder: bi('مثال: +20 100 123 4567', 'e.g. +20 100 123 4567'),
+    },
+    { id: 'unit', label: bi('نوع الوحدة', 'Unit type'), placeholder: bi('', '') },
+    {
+      id: 'area',
+      label: bi('المساحة التقريبية (م²)', 'Approximate area (m²)'),
+      placeholder: bi('مثال: ١٢٠', 'e.g. 120'),
+    },
+    { id: 'service', label: bi('الخدمة المطلوبة', 'Requested service'), placeholder: bi('', '') },
+    { id: 'description', label: bi('وصف مختصر', 'Short description'), placeholder: bi('', '') },
+  ];
+  constructor() {
+    this.l.setTitle('اطلب معاينة', 'Request an inspection');
+    const q = this.route.snapshot.queryParamMap;
+    const unit = q.get('unit') || this.reference?.category || '';
+    const service =
+      q.get('service') ||
+      (this.reference
+        ? this.reference.services.length > 1
+          ? 'design-finishing'
+          : 'renovation'
+        : '');
+    if (this.units.some((u) => u.id === unit)) this.form.controls.unit.setValue(unit);
+    if (this.serviceOptions.some((s) => s.id === service))
+      this.form.controls.service.setValue(service);
+  }
+  invalid(id: string) {
+    const c = this.form.get(id)!;
+    return c.invalid && (c.touched || this.submitted);
+  }
+  error(id: string) {
+    return id === 'phone'
+      ? this.l.text(
+          'أدخل رقم هاتف صحيحًا من 7 إلى 15 رقمًا.',
+          'Enter a valid phone number of 7–15 digits.',
+        )
+      : id === 'area'
+        ? this.l.text('أدخل مساحة أكبر من صفر.', 'Enter an area greater than zero.')
+        : id === 'name'
+          ? this.l.text(
+              'أدخل الاسم الكامل (حرفان على الأقل).',
+              'Enter your full name (at least 2 characters).',
+            )
+          : this.l.text('يرجى إكمال هذا الحقل.', 'Please complete this field.');
+  }
+  async submit() {
+    if (this.loading()) return;
+    this.submitted = true;
+    this.form.markAllAsTouched();
+    if (this.form.invalid) {
+      const id = this.fields.find((f) => this.form.get(f.id)?.invalid)?.id;
+      this.el.nativeElement.querySelector('#' + id)?.focus();
+      return;
+    }
+    this.form.patchValue({
+      name: this.form.controls.name.value.trim(),
+      phone: normalizePhone(this.form.controls.phone.value),
+      area: digits(this.form.controls.area.value).trim().replace('٫', '.'),
+      description: this.form.controls.description.value.trim(),
+    });
+    this.loading.set(true);
+    await new Promise((r) => setTimeout(r, 700));
+    this.loading.set(false);
+    this.success.set(true);
+    this.form.reset();
+    setTimeout(() => document.getElementById('success-heading')?.focus());
+  }
+  reset() {
+    this.submitted = false;
+    this.form.reset();
+    this.success.set(false);
+    setTimeout(() => document.getElementById('name')?.focus());
+  }
+}

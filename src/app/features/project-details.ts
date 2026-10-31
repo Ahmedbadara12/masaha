@@ -1,9 +1,226 @@
-import {Component,ElementRef,ViewChild,inject,signal} from '@angular/core';
-import {ActivatedRoute,RouterLink} from '@angular/router';
-import {Language} from '../core/language';
-import {projects} from '../core/data';
-import {Project} from '../core/models';
-import {ImageFallback,ProjectCard} from '../shared';
-import {NotFound} from './not-found';
-@Component({imports:[RouterLink,ImageFallback,ProjectCard,NotFound],template:`@if(project();as p){<section class="container detail-page"><nav class="breadcrumbs" [attr.aria-label]="l.text('مسار التنقل','Breadcrumbs')"><a routerLink="/">{{l.text('الرئيسية','Home')}}</a><span>/</span><a routerLink="/projects" [queryParams]="{category:category||null}">{{l.text('أعمالنا','Projects')}}</a><span>/</span><span>{{l.t(p.title)}}</span></nav><div class="detail-heading"><div><p class="eyebrow">{{l.text('مشروع تصوّري','CONCEPT PROJECT')}}</p><h1>{{l.t(p.title)}}</h1></div><p>{{l.text('ضوء طبيعي. خامات هادئة. حياة أكثر اتساعًا.','Natural light. Quiet materials. More room for everyday life.')}}</p></div><button class="gallery-main" (click)="show()" [attr.aria-label]="l.text('فتح الصورة بملء الشاشة','Open image in full-screen gallery')"><img fallback [src]="p.gallery[index()].src" [alt]="l.t(p.gallery[index()].alt)" width="1400" height="850"><span class="gallery-expand">⤢ {{l.text('عرض الصورة','View image')}}</span></button><div class="thumbnails">@for(image of p.gallery;track $index){<button [class.selected]="index()===$index" [attr.aria-pressed]="index()===$index" (click)="index.set($index)" [attr.aria-label]="l.text('اختيار صورة ','Select image ')+($index+1)"><img fallback [src]="image.src" [alt]="l.t(image.alt)" width="180" height="120" loading="lazy"></button>}</div><dl class="metadata"><div><dt>{{l.text('نوع المساحة','Space type')}}</dt><dd>{{categoryName(p.category)}}</dd></div><div><dt>{{l.text('المساحة','Area')}}</dt><dd>{{p.areaSqm}} {{l.text('م²','m²')}}</dd></div><div><dt>{{l.text('الخدمة','Service')}}</dt><dd>{{p.services.length>1?l.text('تصميم وتشطيب','Design & finishing'):l.text('تجديد وحدات','Renovation')}}</dd></div><div><dt>{{l.text('مدة توضيحية','Illustrative duration')}}</dt><dd>{{p.estimatedDurationWeeks}} {{l.text('أسابيع','weeks')}}</dd></div></dl><div class="design-story"><h2>{{l.text('عن المساحة','About the space')}}</h2><div><p>{{l.t(p.description)}}</p><p class="demo-note">{{l.text('مشروع تجريبي بصور توضيحية. المدة مثال وليست التزامًا بالتنفيذ.','An illustrative demo project with stock photography. Duration is an example, not a delivery commitment.')}}</p><a class="btn" routerLink="/quote" [queryParams]="{project:p.id,service:p.services.length>1?'design-finishing':'renovation',unit:p.category}">{{l.text('اطلب مشروع مشابه','Request a similar project')}} ↗</a></div></div><div class="section-heading"><h2>{{l.text('مساحات ذات صلة','Related spaces')}}</h2><a class="text-link" routerLink="/projects" [queryParams]="{category:category||null}">{{l.text('العودة للأعمال','Back to projects')}} ↗</a></div><div class="project-grid related">@for(item of related;track item.id){<project-card [project]="item" [filter]="category"/>}</div></section><dialog #lightbox class="lightbox" (keydown)="key($event)" (close)="restore()" [attr.aria-label]="l.text('معرض صور المشروع','Project image gallery')"><button class="lightbox-close" (click)="close()" [attr.aria-label]="l.text('إغلاق المعرض','Close gallery')">×</button><div class="lightbox-body"><button (click)="move(-1)" [attr.aria-label]="l.text('الصورة السابقة','Previous image')">‹</button><img fallback [src]="p.gallery[index()].src" [alt]="l.t(p.gallery[index()].alt)"><button (click)="move(1)" [attr.aria-label]="l.text('الصورة التالية','Next image')">›</button></div><p aria-live="polite">{{index()+1}} / {{p.gallery.length}} — {{l.t(p.gallery[index()].alt)}}</p></dialog>}@else{<not-found/>}`})
-export class ProjectDetails {l=inject(Language);route=inject(ActivatedRoute);project=signal<Project|undefined>(undefined);index=signal(0);category='';related:Project[]=[];@ViewChild('lightbox') dialog?:ElementRef<HTMLDialogElement>;opener?:HTMLElement;constructor(){this.route.paramMap.subscribe(params=>{const p=projects.find(x=>x.slug===params.get('slug'));this.project.set(p);this.index.set(0);this.related=p?projects.filter(x=>x.category===p.category&&x.id!==p.id):[];if(p)this.l.setTitle(p.title.ar,p.title.en);});this.route.queryParamMap.subscribe(q=>this.category=q.get('category')||'');}categoryName(c:string){return this.l.text(c==='apartment'?'شقة':c==='office'?'مكتب':'محل',c==='apartment'?'Apartment':c==='office'?'Office':'Retail');}show(){this.opener=document.activeElement as HTMLElement;this.dialog?.nativeElement.showModal();document.body.style.overflow='hidden';}close(){this.dialog?.nativeElement.close();}restore(){document.body.style.overflow='';this.opener?.focus();}move(n:number){this.index.update(x=>(x+n+this.project()!.gallery.length)%this.project()!.gallery.length);}key(e:KeyboardEvent){if(e.key==='ArrowRight'){e.preventDefault();this.move(1);}if(e.key==='ArrowLeft'){e.preventDefault();this.move(-1);}}ngOnDestroy(){document.body.style.overflow='';}}
+import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Language } from '../core/language';
+import { projects } from '../core/data';
+import { Project } from '../core/models';
+import { ImageFallback, ProjectCard } from '../shared';
+import { NotFound } from './not-found';
+@Component({
+  imports: [RouterLink, ImageFallback, ProjectCard, NotFound],
+  template: `@if (project(); as p) {
+      <section class="container detail-page">
+        <nav class="breadcrumbs" [attr.aria-label]="l.text('مسار التنقل', 'Breadcrumbs')">
+          <a routerLink="/">{{ l.text('الرئيسية', 'Home') }}</a
+          ><span>/</span
+          ><a routerLink="/projects" [queryParams]="{ category: category || null }">{{
+            l.text('أعمالنا', 'Projects')
+          }}</a
+          ><span>/</span><span>{{ l.t(p.title) }}</span>
+        </nav>
+        <div class="detail-heading">
+          <div>
+            <p class="eyebrow">{{ l.text('مشروع تصوّري', 'CONCEPT PROJECT') }}</p>
+            <h1>{{ l.t(p.title) }}</h1>
+          </div>
+          <p>
+            {{
+              l.text(
+                'ضوء طبيعي. خامات هادئة. حياة أكثر اتساعًا.',
+                'Natural light. Quiet materials. More room for everyday life.'
+              )
+            }}
+          </p>
+        </div>
+        <button
+          class="gallery-main"
+          (click)="show()"
+          [attr.aria-label]="l.text('فتح الصورة بملء الشاشة', 'Open image in full-screen gallery')"
+        >
+          <img
+            fallback
+            [src]="p.gallery[index()].src"
+            [alt]="l.t(p.gallery[index()].alt)"
+            width="1400"
+            height="850"
+          /><span class="gallery-expand">⤢ {{ l.text('عرض الصورة', 'View image') }}</span>
+        </button>
+        <div class="thumbnails">
+          @for (image of p.gallery; track $index) {
+            <button
+              [class.selected]="index() === $index"
+              [attr.aria-pressed]="index() === $index"
+              (click)="index.set($index)"
+              [attr.aria-label]="l.text('اختيار صورة ', 'Select image ') + ($index + 1)"
+            >
+              <img
+                fallback
+                [src]="image.src"
+                [alt]="l.t(image.alt)"
+                width="180"
+                height="120"
+                loading="lazy"
+              />
+            </button>
+          }
+        </div>
+        <dl class="metadata">
+          <div>
+            <dt>{{ l.text('نوع المساحة', 'Space type') }}</dt>
+            <dd>{{ categoryName(p.category) }}</dd>
+          </div>
+          <div>
+            <dt>{{ l.text('المساحة', 'Area') }}</dt>
+            <dd>{{ p.areaSqm }} {{ l.text('م²', 'm²') }}</dd>
+          </div>
+          <div>
+            <dt>{{ l.text('الخدمة', 'Service') }}</dt>
+            <dd>
+              {{
+                p.services.length > 1
+                  ? l.text('تصميم وتشطيب', 'Design & finishing')
+                  : l.text('تجديد وحدات', 'Renovation')
+              }}
+            </dd>
+          </div>
+          <div>
+            <dt>{{ l.text('مدة توضيحية', 'Illustrative duration') }}</dt>
+            <dd>{{ p.estimatedDurationWeeks }} {{ l.text('أسابيع', 'weeks') }}</dd>
+          </div>
+        </dl>
+        <div class="design-story">
+          <h2>{{ l.text('عن المساحة', 'About the space') }}</h2>
+          <div>
+            <p>{{ l.t(p.description) }}</p>
+            <p class="demo-note">
+              {{
+                l.text(
+                  'مشروع تجريبي بصور توضيحية. المدة مثال وليست التزامًا بالتنفيذ.',
+                  'An illustrative demo project with stock photography. Duration is an example, not a delivery commitment.'
+                )
+              }}
+            </p>
+            <a
+              class="btn"
+              routerLink="/quote"
+              [queryParams]="{
+                project: p.id,
+                service: p.services.length > 1 ? 'design-finishing' : 'renovation',
+                unit: p.category,
+              }"
+              >{{ l.text('اطلب مشروع مشابه', 'Request a similar project') }} ↗</a
+            >
+          </div>
+        </div>
+        <div class="section-heading">
+          <h2>{{ l.text('مساحات ذات صلة', 'Related spaces') }}</h2>
+          <a class="text-link" routerLink="/projects" [queryParams]="{ category: category || null }"
+            >{{ l.text('العودة للأعمال', 'Back to projects') }} ↗</a
+          >
+        </div>
+        <div class="project-grid related">
+          @for (item of related; track item.id) {
+            <project-card [project]="item" [filter]="category" />
+          }
+        </div>
+      </section>
+      <dialog
+        #lightbox
+        class="lightbox"
+        (keydown)="key($event)"
+        (close)="restore()"
+        [attr.aria-label]="l.text('معرض صور المشروع', 'Project image gallery')"
+      >
+        <button
+          class="lightbox-close"
+          (click)="close()"
+          [attr.aria-label]="l.text('إغلاق المعرض', 'Close gallery')"
+        >
+          ×
+        </button>
+        <div class="lightbox-body">
+          <button (click)="move(-1)" [attr.aria-label]="l.text('الصورة السابقة', 'Previous image')">
+            ‹</button
+          ><img
+            fallback
+            [src]="p.gallery[index()].src"
+            [alt]="l.t(p.gallery[index()].alt)"
+          /><button (click)="move(1)" [attr.aria-label]="l.text('الصورة التالية', 'Next image')">
+            ›
+          </button>
+        </div>
+        <p aria-live="polite">
+          {{ index() + 1 }} / {{ p.gallery.length }} — {{ l.t(p.gallery[index()].alt) }}
+        </p>
+      </dialog>
+    } @else {
+      <not-found />
+    }`,
+})
+export class ProjectDetails {
+  l = inject(Language);
+  route = inject(ActivatedRoute);
+  project = signal<Project | undefined>(undefined);
+  index = signal(0);
+  category = '';
+  related: Project[] = [];
+  @ViewChild('lightbox') dialog?: ElementRef<HTMLDialogElement>;
+  opener?: HTMLElement;
+  constructor() {
+    this.route.paramMap.subscribe((params) => {
+      const p = projects.find((x) => x.slug === params.get('slug'));
+      this.project.set(p);
+      this.index.set(0);
+      this.related = p ? projects.filter((x) => x.category === p.category && x.id !== p.id) : [];
+      if (p) this.l.setTitle(p.title.ar, p.title.en);
+    });
+    this.route.queryParamMap.subscribe((q) => (this.category = q.get('category') || ''));
+  }
+  categoryName(c: string) {
+    return this.l.text(
+      c === 'apartment' ? 'شقة' : c === 'office' ? 'مكتب' : 'محل',
+      c === 'apartment' ? 'Apartment' : c === 'office' ? 'Office' : 'Retail',
+    );
+  }
+  show() {
+    this.opener = document.activeElement as HTMLElement;
+    this.dialog?.nativeElement.showModal();
+    document.body.style.overflow = 'hidden';
+  }
+  close() {
+    this.dialog?.nativeElement.close();
+  }
+  restore() {
+    document.body.style.overflow = '';
+    this.opener?.focus();
+  }
+  move(n: number) {
+    this.index.update(
+      (x) => (x + n + this.project()!.gallery.length) % this.project()!.gallery.length,
+    );
+  }
+  key(e: KeyboardEvent) {
+    if (e.key === 'Tab') {
+      const controls = Array.from(this.dialog!.nativeElement.querySelectorAll<HTMLButtonElement>('button'));
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      this.move(1);
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      this.move(-1);
+    }
+  }
+  ngOnDestroy() {
+    document.body.style.overflow = '';
+  }
+}
